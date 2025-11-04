@@ -43,7 +43,7 @@ class FastUserProfiler:
             logging.critical(f"FATAL: Could not create database connection pool. Error: {error}")
             raise
         
-        # ვქმნით ქვეკატეგორია -> მთავარი კატეგორია რუკას, რომ მონაცემები სწორად დავაკავშიროთ
+        # ვქმნით ქვეკატეგორია -> მთავარი კატეგორიის რუკას, რომ მონაცემები სწორად დავაკავშიროთ
         self.sub_to_main_cat_map = self._get_category_map()
         if not self.sub_to_main_cat_map:
             logging.critical("FATAL: Subcategory to Main Category map could not be created.")
@@ -171,7 +171,7 @@ class FastUserProfiler:
         
         subcat_details_data = []
         for sub, score in subcategory_scores.items():
-            main_cat = self.sub_to_main_cat_map.get(sub, 'Unknown') # თუ კატეგორია ვერ ვიპოვეთ, ვწერთ 'Unknown'
+            main_cat = self.sub_to_main_cat_map.get(sub, 'Unknown') 
             pr = price_ranges.get(sub)
             subcat_details_data.append((
                 batch_run_id, user_id, main_cat, sub, score, 
@@ -289,4 +289,5 @@ if __name__ == "__main__":
     finally:
         if profiler and profiler.db_pool:
             profiler.db_pool.closeall()
+
             logging.info("Database connection pool has been closed.")
