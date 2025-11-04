@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore', category=SAWarning)
 # --- კონფიგურაცია ---
 load_dotenv()
 DATABASE_URL = f"postgresql+psycopg2://{os.getenv('PG_USER')}:{os.getenv('PG_PASSWORD')}@{os.getenv('PG_HOST')}:{os.getenv('PG_PORT')}/{os.getenv('PG_DATABASE')}"
-engine = create_engine(DATABASE_URL, pool_pre_ping=True) # pool_pre_ping ეხმარება კავშირის შენარჩუნებაში
+engine = create_engine(DATABASE_URL, pool_pre_ping=True) 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -88,7 +88,7 @@ def get_product_catalog_for_embedding() -> pd.DataFrame:
     AND inv.in_stock > 0
     AND inv.mother_cat_name IS NOT NULL;
     """
-    # ვიყენებთ psycopg2-ს, რადგან ის უფრო მარტივია ერთი მოთხოვნისთვის
+
     conn = psycopg2.connect(
         host=os.getenv("PG_HOST"),
         database=os.getenv("PG_DATABASE"),
@@ -170,8 +170,6 @@ def main():
         print("No products found to process.")
         return
     print(f"Fetched {len(products_df)} products from the catalog.")
-
-    # +++ სწორი ადგილი დუბლიკატების ამოსაშლელად +++
     # ვშლით დუბლიკატებს, სანამ ტექსტის გენერაციას დავიწყებთ
     initial_count = len(products_df)
     products_df.drop_duplicates(subset=['product_id'], keep='first', inplace=True)
@@ -179,7 +177,6 @@ def main():
     
     if initial_count != final_count:
         print(f"Removed {initial_count - final_count} duplicate product_ids. Processing {final_count} unique products.")
-    # +++ შესწორება მთავრდება აქ +++
 
     print("Generating structured text descriptions for each product...")
     products_df['text_to_embed'] = products_df.apply(generate_rich_text_for_product, axis=1)
@@ -257,4 +254,5 @@ def main():
         print(f"Could not re-create index (it might already exist or another issue occurred): {e}")
 
 if __name__ == "__main__":
+
     main()
