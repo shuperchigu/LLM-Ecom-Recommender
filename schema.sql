@@ -1,12 +1,5 @@
 -- ====================================================================
 -- სარეკომენდაციო სისტემის ანალიტიკური ცხრილების სქემა (ვერსია 2.0)
--- 
--- ცვლილებები:
--- 1. `batch_run_id` დამატებულია ყველა შვილობილ ცხრილში დენორმალიზაციის გზით,
---    რაც აჩქარებს და ამარტივებს ანალიტიკურ მოთხოვნებს.
--- 2. `batch_run_id` სვეტზე დამატებულია ინდექსები.
--- 3. `batch_run_id` და `session_id` ტიპი შეცვლილია UUID-ზე მეტი უნიკალურობისთვის.
--- 4. გამოყენებულია `ON DELETE CASCADE` რელაციური მთლიანობისთვის.
 -- ====================================================================
 
 -- --- დასუფთავების ბლოკი ---
@@ -135,4 +128,5 @@ CREATE INDEX IF NOT EXISTS idx_cart_cart_user_id ON cart_cart (user_id);
 CREATE INDEX IF NOT EXISTS idx_wishlist_wishlist_user_id ON wishlist_wishlist (user_id);
 
 -- ინდექსი product_id-ზე JOIN-ისთვის
+
 CREATE INDEX IF NOT EXISTS idx_veli_inventory_sales_product_id ON veli_inventory_and_sales_fixed (product_id);
