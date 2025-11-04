@@ -3,7 +3,7 @@ import logging
 import time
 import pandas as pd
 import psycopg2
-import warnings  # <<< 1. დამატებულია warnings ბიბლიოთეკა
+import warnings 
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -12,10 +12,7 @@ from tqdm import tqdm # <<< 2. დამატებულია tqdm პრო�
 
 # --- კონფიგურაცია ---
 load_dotenv()
-
-# <<< 1. ვაიგნორებთ UserWarning-ებს, რომლებიც შეიძლება Pandas-მა გამოიწვიოს
 warnings.filterwarnings('ignore', category=UserWarning)
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # მონაცემთა ბაზის კავშირის პარამეტრები .env ფაილიდან
@@ -26,7 +23,7 @@ DB_HOST = os.getenv("PG_HOST")
 DB_PORT = os.getenv("PG_PORT")
 
 # ალგორითმის პარამეტრები
-ALGORITHM_VERSION = "BIA-v1.1-tqdm" # ვერსიის განახლება
+ALGORITHM_VERSION = "BIA-v1.1-tqdm"
 MAX_WORKERS = 10 
 USER_ACTIVITY_DAYS = 365 
 MAX_RECOMMENDATIONS_PER_USER = 10 
@@ -53,7 +50,6 @@ def load_rules(conn):
     ტვირთავს წესებს veli_recommendation_rules ცხრილიდან Pandas DataFrame-ში.
     """
     logging.info("წესების ჩატვირთვა...")
-    # თქვენს კოდში იყო უხილავი სიმბოლო (nbsp), ჩავასწორე ჩვეულებრივი space-ით
     query = "SELECT rule_level, name, purchase_type, default_replenishment_days  as default_replenishment_days FROM veli_recommendation_rules;"
     try:
         rules_df = pd.read_sql(query, conn)
@@ -76,7 +72,7 @@ def get_target_users(conn, days_active):
     """
     try:
         users_df = pd.read_sql(query, conn)
-        user_ids = users_df['user_id'].dropna().astype(int).tolist() # დავამატე dropna და astype data-ს სისუფთავისთვის
+        user_ids = users_df['user_id'].dropna().astype(int).tolist()
         logging.info(f"ნაპოვნია {len(user_ids)} აქტიური მომხმარებელი.")
         return user_ids
     except Exception as e:
@@ -165,23 +161,17 @@ def process_user(user_id, rules_df, batch_run_id):
             
             final_recs_df = due_recommendations_df.sort_values('days_overdue', ascending=False).head(MAX_RECOMMENDATIONS_PER_USER)
             final_recs_df['rank'] = range(1, len(final_recs_df) + 1)
-            
-            # <<< 3. ვამატებთ user_id-ს DataFrame-ში ჩაწერამდე
             final_recs_df['user_id'] = user_id
 
             records_to_insert = final_recs_df[[
                 'user_id', 'product_id', 'rank', 'purchase_date', 'predicted_replenish_date', 'days_overdue'
             ]].to_dict('records')
-
-            # <<< 3. ვაახლებთ INSERT query-ს, რომ შეიცავდეს user_id-ს
             insert_query = """
                 INSERT INTO bia_recommendations (
                     batch_run_id, session_id, user_id, product_id, rank, last_purchase_date,
                     predicted_replenish_date, days_overdue
                 ) VALUES %s;
             """
-            
-            # <<< 3. ვაახლებთ ჩასაწერი მონაცემების tuple-ს
             execute_values(
                 cur,
                 insert_query,
@@ -195,8 +185,6 @@ def process_user(user_id, rules_df, batch_run_id):
             )
 
             conn.commit()
-            # ლოგირებას ვტოვებთ, რადგან ის პროგრეს-ბარს ხელს არ უშლის და სასარგებლოა
-            # logging.info(f"მომხმარებლის {user_id} დამუშავება დასრულდა. გენერირდა {len(final_recs_df)} BIA რეკომენდაცია.")
             return (user_id, 'SUCCESS', len(final_recs_df))
 
     except Exception as e:
@@ -232,7 +220,6 @@ def main():
 
         if not user_ids:
             logging.warning("აქტიური მომხმარებლები ვერ მოიძებნა. პროცესი სრულდება.")
-            # სწორად დავხუროთ batch_run სტატუსით 'Completed', მაგრამ 0 დამუშავებული იუზერით
             if batch_run_id:
                 duration = time.time() - start_time
                 with conn.cursor() as cur:
@@ -245,8 +232,6 @@ def main():
 
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             futures = {executor.submit(process_user, user_id, rules_df, batch_run_id) for user_id in user_ids}
-            
-            # <<< 2. ვამატებთ tqdm პროგრეს-ბარს
             progress_bar = tqdm(as_completed(futures), total=len(user_ids), desc="მომხმარებლების დამუშავება")
             for future in progress_bar:
                 try:
@@ -277,7 +262,6 @@ def main():
         if batch_run_id and conn:
             duration = time.time() - start_time
             with conn.cursor() as cur:
-                # ვამოწმებთ, რომ სტატუსი უკვე 'Failed' არ არის
                 cur.execute("SELECT status FROM bia_batch_runs WHERE id = %s", (batch_run_id,))
                 current_status = cur.fetchone()[0]
                 if current_status != 'Failed':
@@ -299,4 +283,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
