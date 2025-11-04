@@ -1,0 +1,30 @@
+# ---------------------------------------------
+# Core libraries for data handling and database connection
+# ---------------------------------------------
+pandas
+db-dtypes       # NEW: Required by pandas/google-cloud-bigquery for handling specific data types
+sqlalchemy
+psycopg2-binary # For PostgreSQL connection
+python-dotenv   # For managing environment variables (.env file)
+
+# ---------------------------------------------
+# AI and Recommendation Engine libraries
+# ---------------------------------------------
+google-generativeai  # For using Gemini API
+pgvector             # For vector similarity search in PostgreSQL
+tqdm                 # For progress bars
+
+# ---------------------------------------------
+# Google Cloud Platform (GCP) libraries
+# ---------------------------------------------
+google-cloud-bigquery  # NEW: For extracting data from BigQuery (ETL script)
+google-auth-oauthlib   # Dependency for BigQuery authentication
+google-api-python-client # Dependency for Google services
+
+# The library below might have been for Vertex AI, but we are using Gemini API directly.
+# Keeping it for now in case it's needed for other parts of the project.
+google-cloud-aiplatform
+
+boto3
+
+
