@@ -336,7 +336,6 @@ class RecommenderSystem:
             cat_candidates = candidates[candidates['mother_cat_name'] == category]
             if cat_candidates.empty: continue
             
-            # ... (დანარჩენი ლოგიკა პრომპტების გენერირებისთვის უცვლელია) ...
             subcats_in_main_cat = {sub: sub_scores.get(sub, 0) for sub in cat_candidates['subcategory'].dropna().unique()}
             subcat_total_score = sum(subcats_in_main_cat.values())
 
@@ -587,4 +586,5 @@ if __name__ == "__main__":
     finally:
         if recommender and recommender.db_pool:
             recommender.db_pool.closeall()
+
             logging.info("Database connection pool has been closed.")
